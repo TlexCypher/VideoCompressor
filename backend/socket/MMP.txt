@@ -1,0 +1,15 @@
+MMP is the custrom protocol for VideoCompressor service.
+MMP is tcp-based protocol.
+
+MMP has two layers, header and payload.
+
+1. Header (64 bytes)
+Header is 64 bytes layer, and it has three layers in itself, json_length(16 bytes),
+media_type_length(1 byte), payload_length(47 bytes)
+
+2. Body (Otherwise)
+Body has also three layers in itself, json(max_size: pow(2, 16) bytes),  media_type(max_size: pow(2, 1) bytes), payload(max_size: pow(2, 47) bytes)
+All layers in body is corresponding to header's inner three layers.
+Also, note that, payload must be a file, read by following media type.
+
+
