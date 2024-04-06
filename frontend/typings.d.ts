@@ -12,6 +12,6 @@ type BinaryFileContent = ArrayBuffer
 
 type ServiceProps = {
     fileName: string,
-    fileLength: number,
+    fileSize: number,
     fileBinaryContent: BinaryFileContent
 }

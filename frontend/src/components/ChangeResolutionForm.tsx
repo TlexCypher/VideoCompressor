@@ -2,7 +2,7 @@ import {ChangeEvent, useState} from "react";
 import {ServiceProps} from "../../typings";
 import axios from "axios";
 
-const ChangeResolutionForm = ({fileName, fileLength, fileBinaryContent}: ServiceProps) => {
+const ChangeResolutionForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const [height, setHeight] = useState<string>("")
     const [width, setWidth] = useState<string>("")
     const handleHeight = (e: ChangeEvent<HTMLInputElement>)=> {
@@ -14,10 +14,11 @@ const ChangeResolutionForm = ({fileName, fileLength, fileBinaryContent}: Service
     }
 
     const submitChangeResolutionForm = async() => {
-        await axios.post("/changeResolution", {
+        await axios.post("/service", {
             "name": fileName,
-            "length": fileLength,
+            "size": fileSize,
             "content": fileBinaryContent,
+            "service": "Change resolution"
         })
     }
 

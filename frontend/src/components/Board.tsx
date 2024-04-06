@@ -9,7 +9,7 @@ import NoFileSelected from "./NoFileSelected.tsx";
 
 const Board = () => {
     const [fileName, setFileName] = useState<string>("")
-    const [fileLength, setFileLength] = useState<number>(0)
+    const [fileSize, setFileSize] = useState<number>(0)
     const [fileBinaryContent, setFileBinaryContent] = useState<BinaryFileContent | null>(null)
     const [selectedService, setSelectedService] = useState<Service>("Compress");
     const handleSelectedService = (e: ChangeEvent<HTMLInputElement>) => {
@@ -20,7 +20,7 @@ const Board = () => {
         if (!files || files?.length === 0) return;
         const file = files[0]
         setFileName(file.name)
-        setFileLength(file.length)
+        setFileSize(file.size)
         const reader = new FileReader()
         reader.onloadend = () => {
             if(reader.readyState === reader.DONE) {
@@ -108,11 +108,11 @@ const Board = () => {
                 {
                     fileName.length == 0 || !fileBinaryContent ? <NoFileSelected/> :
                     selectedService != null &&
-                    selectedService === "Compress" ? <CompressForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> :
-                    selectedService === "Change resolution" ? <ChangeResolutionForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> :
-                    selectedService === "Change aspect ratio" ? <ChangeAspectRatioForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> :
-                    selectedService === "Convert into audio" ? <ConvertIntoAudioForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> :
-                    selectedService === "Create gif" ? <CreateGifForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> : <></>
+                    selectedService === "Compress" ? <CompressForm fileName={fileName} fileSize={fileSize} fileBinaryContent={fileBinaryContent}/> :
+                    selectedService === "Change resolution" ? <ChangeResolutionForm fileName={fileName} fileSize={fileSize} fileBinaryContent={fileBinaryContent}/> :
+                    selectedService === "Change aspect ratio" ? <ChangeAspectRatioForm fileName={fileName} fileSize={fileSize} fileBinaryContent={fileBinaryContent}/> :
+                    selectedService === "Convert into audio" ? <ConvertIntoAudioForm fileName={fileName} fileSize={fileSize} fileBinaryContent={fileBinaryContent}/> :
+                    selectedService === "Create gif" ? <CreateGifForm fileName={fileName} fileSize={fileSize} fileBinaryContent={fileBinaryContent}/> : <></>
                 }
             </div>
         </>

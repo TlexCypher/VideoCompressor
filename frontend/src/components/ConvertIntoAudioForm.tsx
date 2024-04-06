@@ -1,12 +1,13 @@
 import {ServiceProps} from "../../typings";
 import axios from "axios";
 
-const ConvertIntoAudioForm = ({fileName, fileLength, fileBinaryContent}: ServiceProps) => {
+const ConvertIntoAudioForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const submitConvertIntoAudioForm = async() => {
-        await axios.post("/convertIntoAudio", {
+        await axios.post("/service", {
             "name": fileName,
-            "length": fileLength,
+            "size": fileSize,
             "content": fileBinaryContent,
+            "service": "Convert into audio"
         })
     }
 

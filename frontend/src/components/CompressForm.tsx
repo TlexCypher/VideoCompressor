@@ -2,18 +2,19 @@ import {ChangeEvent, useState} from "react";
 import {CompressLevel, ServiceProps} from "../../typings";
 import axios from 'axios'
 
-const CompressForm = ({fileName, fileLength, fileBinaryContent}: ServiceProps) => {
+const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const [compressLevel, setCompressLevel] = useState<CompressLevel | null>(null)
     const handleCompressLevel = (e: ChangeEvent<HTMLInputElement>) => {
         setCompressLevel(e.target.value as CompressLevel)
     }
     const submitCompressForm = async() => {
         console.log(new Uint8Array(fileBinaryContent as ArrayBuffer))
-        await axios.post("/compress", {
+        await axios.post("/service", {
             "name": fileName,
-            "length": fileLength,
+            "size": fileSize,
             "content": Array.from(new Uint8Array(fileBinaryContent as ArrayBuffer)),
             "level": compressLevel,
+            "service": "Compress"
         })
     }
     return (

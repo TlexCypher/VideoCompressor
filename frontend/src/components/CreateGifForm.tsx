@@ -2,7 +2,7 @@ import {ChangeEvent, useState} from "react";
 import {ServiceProps} from "../../typings";
 import axios from "axios";
 
-const CreateGifForm = ({fileName, fileLength, fileBinaryContent}: ServiceProps) => {
+const CreateGifForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const [startTime, setStartTime] = useState<string>("")
     const [endPosition, setEndPosition] = useState<string>("")
     const [flameRate, setFlameRate] = useState<string>("")
@@ -25,10 +25,11 @@ const CreateGifForm = ({fileName, fileLength, fileBinaryContent}: ServiceProps) 
     }
 
     const submitCreateGifForm = async() => {
-        await axios.post("/createGif", {
+        await axios.post("/service", {
             "name": fileName,
-            "length": fileLength,
+            "size": fileSize,
             "content": fileBinaryContent,
+            "service": "Create gif"
         })
     }
 
