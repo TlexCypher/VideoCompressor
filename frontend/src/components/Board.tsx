@@ -7,7 +7,7 @@ import ConvertIntoAudioForm from "./ConvertIntoAudioForm.tsx";
 import CreateGifForm from "./CreateGifForm.tsx";
 
 const Board = () => {
-    const [selectedService, setSelectedService] = useState<Service | null>(null);
+    const [selectedService, setSelectedService] = useState<Service>("Compress");
     const handleSelectedService = (e: ChangeEvent<HTMLInputElement>) => {
         setSelectedService(e.target.value as Service)
     }
@@ -84,11 +84,12 @@ const Board = () => {
                     </form>
                 </div>
                 {
-                    selectedService &&
+                    selectedService != null &&
                     selectedService === "Compress" ? <CompressForm/> :
                     selectedService === "Change resolution" ? <ChangeResolutionForm/> :
                     selectedService === "Change aspect ratio" ? <ChangeAspectRatioForm/> :
-                    selectedService === "Convert into audio" ? <ConvertIntoAudioForm/> : <CreateGifForm/>
+                    selectedService === "Convert into audio" ? <ConvertIntoAudioForm/> :
+                    selectedService === "Create gif" ? <CreateGifForm/> : <></>
                 }
             </div>
         </>
