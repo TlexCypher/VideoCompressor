@@ -1,11 +1,12 @@
+import Board from "./components/Board.tsx";
+import Layout from "./components/Layout.tsx";
 
-function App() {
-
-  return (
-        <h1 className="text-red-200 text-3xl font-bold underline">
-            Hello world!
-        </h1>
-  )
+const App = () => {
+    return (
+        <Layout>
+            <Board/>
+        </Layout>
+    )
 }
 
-export default App
+export default App;
