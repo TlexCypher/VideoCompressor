@@ -1,15 +1,34 @@
 import {ChangeEvent, useState} from "react";
-import {Service} from "../../typings";
+import {BinaryFileContent, Service} from "../../typings";
 import CompressForm from "./CompressForm.tsx";
 import ChangeResolutionForm from "./ChangeResolutionForm.tsx";
 import ChangeAspectRatioForm from "./ChangeAspectRatioForm.tsx";
 import ConvertIntoAudioForm from "./ConvertIntoAudioForm.tsx";
 import CreateGifForm from "./CreateGifForm.tsx";
+import NoFileSelected from "./NoFileSelected.tsx";
 
 const Board = () => {
+    const [fileName, setFileName] = useState<string>("")
+    const [fileLength, setFileLength] = useState<number>(0)
+    const [fileBinaryContent, setFileBinaryContent] = useState<BinaryFileContent | null>(null)
     const [selectedService, setSelectedService] = useState<Service>("Compress");
     const handleSelectedService = (e: ChangeEvent<HTMLInputElement>) => {
         setSelectedService(e.target.value as Service)
+    }
+    const handleSelectedVideo = async(e: ChangeEvent<HTMLInputElement>) => {
+        const files = e.currentTarget.files
+        if (!files || files?.length === 0) return;
+        const file = files[0]
+        setFileName(file.name)
+        setFileLength(file.length)
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            if(reader.readyState === reader.DONE) {
+                const bytes = reader.result as (BinaryFileContent | null)
+                setFileBinaryContent(bytes)
+            }
+        }
+        reader.readAsArrayBuffer(file)
     }
     return (
         <>
@@ -21,6 +40,7 @@ const Board = () => {
                     <div className={"flex mt-4 bg-white p-2 rounded-lg w-1/5 mx-auto text-center"}>
                         <input
                             type={"file"}
+                            onChange={handleSelectedVideo}
                         />
                     </div>
                     <form>
@@ -83,13 +103,16 @@ const Board = () => {
                         </div>
                     </form>
                 </div>
+
+
                 {
+                    fileName.length == 0 || !fileBinaryContent ? <NoFileSelected/> :
                     selectedService != null &&
-                    selectedService === "Compress" ? <CompressForm/> :
-                    selectedService === "Change resolution" ? <ChangeResolutionForm/> :
-                    selectedService === "Change aspect ratio" ? <ChangeAspectRatioForm/> :
-                    selectedService === "Convert into audio" ? <ConvertIntoAudioForm/> :
-                    selectedService === "Create gif" ? <CreateGifForm/> : <></>
+                    selectedService === "Compress" ? <CompressForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> :
+                    selectedService === "Change resolution" ? <ChangeResolutionForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> :
+                    selectedService === "Change aspect ratio" ? <ChangeAspectRatioForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> :
+                    selectedService === "Convert into audio" ? <ConvertIntoAudioForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> :
+                    selectedService === "Create gif" ? <CreateGifForm fileName={fileName} fileLength={fileLength} fileBinaryContent={fileBinaryContent}/> : <></>
                 }
             </div>
         </>

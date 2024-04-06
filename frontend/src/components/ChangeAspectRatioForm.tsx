@@ -1,6 +1,8 @@
 import {ChangeEvent, useState} from "react";
+import {ServiceProps} from "../../typings";
+import axios from "axios";
 
-const ChangeAspectRatioForm = () => {
+const ChangeAspectRatioForm = ({fileName, fileLength, fileBinaryContent}: ServiceProps) => {
     const [height, setHeight] = useState<string>("");
     const [width, setWidth] = useState<string>("");
     const handleHeight = (e: ChangeEvent<HTMLInputElement>) => {
@@ -9,8 +11,12 @@ const ChangeAspectRatioForm = () => {
     const handleWidth = (e: ChangeEvent<HTMLInputElement>) => {
         setWidth(e.target.value)
     }
-    const submitChangeAspectRatioForm = () => {
-
+    const submitChangeAspectRatioForm = async() => {
+        await axios.post("/changeAspectRatio", {
+            "name": fileName,
+            "length": fileLength,
+            "content": fileBinaryContent,
+        })
     }
     return (
         <>
