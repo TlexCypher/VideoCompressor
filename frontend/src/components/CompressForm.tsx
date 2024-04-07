@@ -1,6 +1,6 @@
 import {ChangeEvent, useState} from "react";
-import {CompressLevel, ServiceProps} from "../../typings";
-import axios from 'axios'
+import {CompressLevel, ServiceProps, DataProcessedByService} from "../../typings";
+import axios, {HttpStatusCode} from 'axios'
 
 const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const [compressLevel, setCompressLevel] = useState<CompressLevel | null>(null)
@@ -9,13 +9,22 @@ const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => 
     }
     const submitCompressForm = async() => {
         console.log(new Uint8Array(fileBinaryContent as ArrayBuffer))
-        await axios.post("/service", {
+        const { data } = await axios.post<DataProcessedByService>("/service", {
             "name": fileName,
             "size": fileSize,
             "content": Array.from(new Uint8Array(fileBinaryContent as ArrayBuffer)),
             "level": compressLevel,
             "service": "Compress"
         })
+        if (data.status == HttpStatusCode.Ok) {
+            const base64Encoded  = data.content
+            const byteContent = window.atob(base64Encoded)
+            const byteArr = new Uint8Array(byteContent.length)
+            console.log(byteArr)
+            //あとはダウンロード可能にするだけ
+        } else {
+            alert("Failed to end service successfully.")
+        }
     }
     return (
         <>

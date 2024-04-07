@@ -15,3 +15,8 @@ type ServiceProps = {
     fileSize: number,
     fileBinaryContent: BinaryFileContent
 }
+
+type DataProcessedByService = {
+    content: string,
+    status: number,
+}

@@ -3,12 +3,13 @@ import axios from "axios";
 
 const ConvertIntoAudioForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const submitConvertIntoAudioForm = async() => {
-        await axios.post("/service", {
+        const { data } = await axios.post("/service", {
             "name": fileName,
             "size": fileSize,
             "content": Array.from(new Uint8Array(fileBinaryContent as ArrayBuffer)),
             "service": "Convert into audio"
         })
+        console.log(data)
     }
 
     return (
