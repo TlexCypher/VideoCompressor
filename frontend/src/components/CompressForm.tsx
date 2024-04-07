@@ -17,11 +17,7 @@ const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => 
             "service": "Compress"
         })
         if (data.status == HttpStatusCode.Ok) {
-            const base64Encoded  = data.content
-            const byteContent = window.atob(base64Encoded)
-            const byteArr = new Uint8Array(byteContent.length)
-            console.log(byteArr)
-            //あとはダウンロード可能にするだけ
+            //UploadするためのPythonクラスとsocket通信を行う必要あり
         } else {
             alert("Failed to end service successfully.")
         }
