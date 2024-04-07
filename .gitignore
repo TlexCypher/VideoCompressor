@@ -1,2 +1,4 @@
 .idea
 */**/.env
+./backend/socket/server/data
+./backend/socket/server/raw/

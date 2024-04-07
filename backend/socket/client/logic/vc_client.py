@@ -2,7 +2,7 @@ import enum
 import json
 import os.path
 
-from typing import Optional
+from typing import Optional, Any
 
 from compress.compressor import CompressService
 from logic.client import TcpClient
@@ -15,52 +15,61 @@ class VcClient(TcpClient):
     VideoCompressor/MMP.txt is the file path that describes MMP.
     """
 
-    def __init__(self, server_address: str, server_port: int) -> None:
+    def __init__(self, server_address: str, server_port: int, payload_filename: str) -> None:
         super().__init__(server_address, server_port)
         self.header_size = 64
+        self.payload_filename = payload_filename
+        self.payload_dirpath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'server/raw/')
+        self.payload_filepath = os.path.join(self.payload_dirpath, self.payload_filename)
+        print("###############################")
+        print("payload directory path,", self.payload_dirpath)
+        print("payload file path", self.payload_filepath)
+        print("payload file name", self.payload_filename)
 
     # Override TcpClient.upload()
     def upload(self) -> None:
         # Upload anything
         super()._connect_with_server()
-        self.__get_user_input()
+        self.__read_payload_file()
         self.__send_header()
         self.__send_json()
         self.__send_media_type()
         self.__send_payload()
 
-    def compress_service_start(self):
-        # Start compress service
-        while True:
-            selected_service = input("Please select a service from 1 to 5...\n"
-                                     "1 --> Compress video file.\n"
-                                     "2 --> Change video resolution.\n"
-                                     "3 --> Change the video aspect ratio.\n"
-                                     "4 --> Convert video to audio.\n"
-                                     "5 --> Create Gif from video.\n")
-            # Todo not a number case should be handled
-            if int(selected_service) < CompressService.Compress.value or \
-                    int(selected_service) > CompressService.Create_Gif.value:
-                print("You should select from 1 to 5.")
-                continue
-            break
-
-        self.compress_service_parsed_json = self.__parse_compress_service_detail_json(
-            CompressService.get_service(selected_service))
+    def compress_service_start(self, request_json: dict):
+        self.compress_service_parsed_json = self.__parse_compress_service_detail_json(request_json)
         self.sock.send(self.compress_service_parsed_json.encode())
 
-    def __parse_compress_service_detail_json(self, select_service: enum.Enum) -> Optional[str]:
+    def __parse_compress_service_detail_json(self, request_json: dict) -> Optional[str]:
+        def __get_number_expression(_service: str) -> Optional[int]:
+            if _service == "Compress":
+                return 1
+            elif _service == "Change resolution":
+                return 2
+            elif _service == "Change aspect ratio":
+                return 3
+            elif _service == "Convert into audio":
+                return 4
+            elif _service == "Create gif":
+                return 5
+            else:
+                self.logger.error("No such service in {}, __parse_compress_service_detail_json()".format(__file__))
+                raise Exception("No such service")
+
         json_data = None
-        if select_service == CompressService.Compress:
-            json_data = self.__parse_compress_json()
-        elif select_service == CompressService.Change_Resolution:
-            json_data = self.__parse_change_resolution_json()
-        elif select_service == CompressService.Change_Aspect_Ratio:
-            json_data = self.__parse_change_aspect_ratio_json()
-        elif select_service == CompressService.Convert_Into_Audio:
+        _service = request_json["service"]
+        service = __get_number_expression(_service)
+        print("_SERVICE", _service)
+        if service == CompressService.Compress.value:
+            json_data = self.__parse_compress_json(request_json)
+        elif service == CompressService.Change_Resolution.value:
+            json_data = self.__parse_change_resolution_json(request_json)
+        elif service == CompressService.Change_Aspect_Ratio.value:
+            json_data = self.__parse_change_aspect_ratio_json(request_json)
+        elif service == CompressService.Convert_Into_Audio.value:
             json_data = self.__parse_convert_into_audio_json()
-        elif select_service == CompressService.Create_Gif:
-            json_data = self.__parse_create_gif_json()
+        elif service == CompressService.Create_Gif.value:
+            json_data = self.__parse_create_gif_json(request_json)
         else:
             print("No such service.")
             self.logger.error("No such compress service we provide: __parse_compress_service_detail_json().")
@@ -68,92 +77,47 @@ class VcClient(TcpClient):
 
         return json_data
 
-    def __parse_compress_json(self) -> str:
-        def __get_compress_level() -> str:
-            return input('Please select the degree of compression\n'
-                         'low\n'
-                         'medium\n'
-                         'high\n')
-
-        compress_json_data = {
+    def __parse_compress_json(self, request_json: dict) -> str:
+        return json.dumps({
             "service": CompressService.Compress.value,
-            "level": __get_compress_level(),
-        }
-        return json.dumps(compress_json_data)
+            "level": request_json["level"],
+        })
 
-    def __parse_change_resolution_json(self):
-        def __get_height():
-            return input("Please input height (ex:1280):")
-
-        def __get_width():
-            return input("Please input weight (ex:720):")
-
-        change_resolution_data = {
+    def __parse_change_resolution_json(self, request_json: dict):
+        return json.dumps({
             "service": CompressService.Change_Resolution.value,
-            "height": __get_height(),
-            "width": __get_width()
-        }
-        return json.dumps(change_resolution_data)
+            "height": request_json["height"],
+            "width": request_json["width"]
+        })
 
-    def __parse_change_aspect_ratio_json(self):
-        def __get_height_ratio():
-            return input("Please enter the height rate(ex:16):")
-
-        def __get_width_ratio():
-            return input("Please enter the width rate(ex:9)")
-
-        height_ratio = __get_height_ratio()
-        width_ratio = __get_width_ratio()
-
-        change_aspect_ratio = {
+    def __parse_change_aspect_ratio_json(self, request_json: dict):
+        return json.dumps({
             "service": CompressService.Change_Aspect_Ratio.value,
-            "height_ratio": height_ratio,
-            "width_ratio": width_ratio,
-        }
-        return json.dumps(change_aspect_ratio)
+            "height_ratio": request_json["height_ratio"],
+            "width_ratio": request_json["width_ratio"],
+        })
 
     def __parse_convert_into_audio_json(self):
         return json.dumps({
             "service": CompressService.Convert_Into_Audio.value,
         })
 
-    def __parse_create_gif_json(self):
-        start = input('Input start position (ex. 00:00:20): ')
-        end = input('Input end position (ex. 10): ')
-        flame_rate = input('Input flame rate (ex. 10): ')
-        resize = input('Input resize (ex. 300): ')
+    def __parse_create_gif_json(self, request_json: dict):
         return json.dumps({
             "service": CompressService.Create_Gif.value,
-            "start": start,
-            "end": end,
-            "flame_rate": flame_rate,
-            "resize": resize,
+            "start_time": request_json["start_time"],
+            "end_position": request_json["end_position"],
+            "flame_rate": request_json["flame_rate"],
+            "resize": request_json["resize"],
         })
 
-    def __get_user_input(self) -> None:
-        """
-        TODO
-        Parse json, media_type, payload
-        Also, get all layer's sizes.
-
-        When parse json, we should know payload's filename and payload's filesize
-        So, json would be like this.
-        {
-            filename: hogehoge: str
-            filesize: foobar: int
-        }
-        """
-        self.__get_payload_filename()
-        self.__read_payload_file()
-
-    def __get_payload_filename(self) -> None:
-        self.payload_filepath = input("Enter absolute filepath that you wanna compress with this service.")
-        self.payload_filename = os.path.basename(self.payload_filepath)
+    def __get_media_type(self) -> None:
         self.media_type = os.path.splitext(self.payload_filepath)[1]
         # TODO
         # extension validation
 
     def __read_payload_file(self) -> None:
+        self.__get_media_type()
         with open(self.payload_filepath, "rb+") as payload_file:
             self.__get_payload_size()
             self.__parse_json()

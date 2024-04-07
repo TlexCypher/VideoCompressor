@@ -85,8 +85,8 @@ class Compressor(object):
         self.command = self.base_command + self.option
 
     def __create_gif(self):
-        start = self.compress_service_loaded_data["start"]
-        end = self.compress_service_loaded_data["end"]
+        start = self.compress_service_loaded_data["start_time"]
+        end = self.compress_service_loaded_data["end_position"]
         flame_rate = self.compress_service_loaded_data["flame_rate"]
         resize = self.compress_service_loaded_data["resize"]
         self.command = 'ffmpeg -ss ' + start + ' -i ' + self.payload_filename + ' -to ' + end + ' -r ' + flame_rate + ' -vf scale=' + resize + ':-1 data/create_gif.gif'

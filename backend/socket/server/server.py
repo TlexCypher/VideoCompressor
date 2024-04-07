@@ -29,7 +29,7 @@ class TcpServer(object):
         self.logger.debug("Success to bind {}".format((self.server_address, self.server_port)))
 
         self.sock.listen(1)
-        self.sock.settimeout(10)
+        self.sock.settimeout(100)
 
         self.stream_rate = 1400
         self.filesize_length = 32

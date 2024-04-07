@@ -28,8 +28,12 @@ const CreateGifForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) =>
         await axios.post("/service", {
             "name": fileName,
             "size": fileSize,
-            "content": fileBinaryContent,
-            "service": "Create gif"
+            "content": Array.from(new Uint8Array(fileBinaryContent)),
+            "service": "Create gif",
+            "start_time": startTime,
+            "end_position": endPosition,
+            "flame_rate": flameRate,
+            "resize": resize,
         })
     }
 

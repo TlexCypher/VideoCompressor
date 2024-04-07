@@ -3,20 +3,22 @@ import {ServiceProps} from "../../typings";
 import axios from "axios";
 
 const ChangeAspectRatioForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
-    const [height, setHeight] = useState<string>("");
-    const [width, setWidth] = useState<string>("");
-    const handleHeight = (e: ChangeEvent<HTMLInputElement>) => {
-        setHeight(e.target.value)
+    const [heightRatio, setHeightRatio] = useState<string>("");
+    const [widthRatio, setWidthRatio] = useState<string>("");
+    const handleHeightRatio = (e: ChangeEvent<HTMLInputElement>) => {
+        setHeightRatio(e.target.value)
     }
-    const handleWidth = (e: ChangeEvent<HTMLInputElement>) => {
-        setWidth(e.target.value)
+    const handleWidthRatio = (e: ChangeEvent<HTMLInputElement>) => {
+        setWidthRatio(e.target.value)
     }
     const submitChangeAspectRatioForm = async() => {
         await axios.post("/service", {
             "name": fileName,
             "size": fileSize,
-            "content": fileBinaryContent,
-            "service": "Change aspect ratio"
+            "content": Array.from(new Uint8Array(fileBinaryContent as ArrayBuffer)),
+            "service": "Change aspect ratio",
+            "height_ratio": heightRatio,
+            "width_ratio": widthRatio,
         })
     }
     return (
@@ -25,18 +27,18 @@ const ChangeAspectRatioForm = ({fileName, fileSize, fileBinaryContent}: ServiceP
                 <p className={"text-center text-xl font-bold mt-4"}>Enter height and width</p>
                 <div className={"text-center my-4"}>
                     <input
-                        placeholder={"height (e.g 16)"}
+                        placeholder={"height ratio (e.g 16)"}
                         className={"px-4 py-2 rounded-xl drop-shadow"}
-                        value={height}
-                        onChange={handleHeight}
+                        value={heightRatio}
+                        onChange={handleHeightRatio}
                     />
                 </div>
                 <div className={"text-center"}>
                     <input
-                        placeholder={"width (e.g 9)"}
+                        placeholder={"width ratio (e.g 9)"}
                         className={"px-4 py-2 rounded-xl drop-shadow"}
-                        value={width}
-                        onChange={handleWidth}
+                        value={widthRatio}
+                        onChange={handleWidthRatio}
                     />
                 </div>
             </div>

@@ -6,7 +6,7 @@ const ConvertIntoAudioForm = ({fileName, fileSize, fileBinaryContent}: ServicePr
         await axios.post("/service", {
             "name": fileName,
             "size": fileSize,
-            "content": fileBinaryContent,
+            "content": Array.from(new Uint8Array(fileBinaryContent as ArrayBuffer)),
             "service": "Convert into audio"
         })
     }

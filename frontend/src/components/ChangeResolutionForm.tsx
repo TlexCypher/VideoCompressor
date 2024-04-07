@@ -17,8 +17,10 @@ const ChangeResolutionForm = ({fileName, fileSize, fileBinaryContent}: ServicePr
         await axios.post("/service", {
             "name": fileName,
             "size": fileSize,
-            "content": fileBinaryContent,
-            "service": "Change resolution"
+            "content": Array.from(new Uint8Array(fileBinaryContent as ArrayBuffer)),
+            "service": "Change resolution",
+            "height": height,
+            "width": width,
         })
     }
 
