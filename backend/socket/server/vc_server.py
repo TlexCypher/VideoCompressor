@@ -1,5 +1,7 @@
 import json
 import os.path
+import shutil
+import subprocess
 import sys
 
 from compress.compressor import Compressor
@@ -23,15 +25,34 @@ class VcServer(TcpServer):
         self.json_filename = "data.json"
         self.video_basename = "video"
 
-    def start(self) -> None:
+    def start(self) -> int:
         try:
             while True:
                 self.__accept()
-                self.__run_compress_service()
-
+                subprocess_result = self.__run_compress_service()
+                if subprocess_result.returncode == 0:
+                    self.logger.info("Success to end service.")
+                else:
+                    self.logger.error("Something wrong was happened. Failed to end service")
+                return subprocess_result.returncode
         except TimeoutError:
             super().logger.info("No data from client\nClosing connection.")
             sys.exit(1)
+
+    @staticmethod
+    def clean():
+        data_dir = os.path.join(os.path.dirname(__file__), "data")
+        raw_dir = os.path.join(os.path.dirname(__file__), "raw")
+        print("data", data_dir)
+        print("raw", raw_dir)
+
+        if os.path.exists(data_dir):
+            os.chmod(data_dir, 0o777)
+            shutil.rmtree(data_dir)
+
+        if os.path.exists(raw_dir):
+            os.chmod(raw_dir, 0o777)
+            shutil.rmtree(raw_dir)
 
     def __accept(self):
         super()._establish_connection()
@@ -48,10 +69,10 @@ class VcServer(TcpServer):
         self.__accept_media_type(media_type_length)
         self.__accept_payload(payload_length)
 
-    def __run_compress_service(self):
+    def __run_compress_service(self) -> subprocess.CompletedProcess | subprocess.CompletedProcess[bytes]:
         compress_service_json = self.connection.recv(self.stream_rate).decode()
         compressor = Compressor(compress_service_json, self.__get_server_data_path(self.payload_filename))
-        compressor.run()
+        return compressor.run()
 
     def __accept_json(self, json_file_length: int) -> None:
         return self.__accept_helper(json_file_length, self.json_filename)
@@ -61,7 +82,8 @@ class VcServer(TcpServer):
         return self.media_type
 
     def __accept_payload(self, payload_length: int) -> None:
-        self.payload_filename = self.__get_payload_filename_without_ext(self.__get_server_data_path(self.json_filename)) + self.media_type
+        self.payload_filename = self.__get_payload_filename_without_ext(
+            self.__get_server_data_path(self.json_filename)) + self.media_type
         return self.__accept_helper(payload_length, self.payload_filename)
 
     def __accept_helper(self, file_length: int, filename: str):
@@ -84,5 +106,8 @@ class VcServer(TcpServer):
 
 
 if __name__ == '__main__':
+    VcServer.clean()
     vc_server = VcServer("0.0.0.0", 5001)
-    vc_server.start()
+    subprocess_result = vc_server.start()
+    print(subprocess_result)
+    vc_server.connection.send(int.to_bytes(subprocess_result, "big"))

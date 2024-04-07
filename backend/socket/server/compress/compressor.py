@@ -25,10 +25,11 @@ class Compressor(object):
     def __set_service(self):
         self.service = CompressService.get_service(self.compress_service_loaded_data["service"])
 
-    def run(self) -> None:
-        def _run():
+    def run(self) -> subprocess.CompletedProcess | subprocess.CompletedProcess[bytes]:
+        def _run() -> subprocess.CompletedProcess | subprocess.CompletedProcess[bytes]:
             self.command = self.command.split(" ")
-            subprocess.run(self.command)
+            result = subprocess.run(self.command)
+            return result
 
         if self.service == CompressService.Compress:
             self.logger.debug("Do compress service start: numbers is 1")
@@ -54,7 +55,7 @@ class Compressor(object):
             self.logger.debug("No such service. Error has been occured.")
             raise Exception("No such service")
 
-        _run()
+        return _run()
 
     def __compress(self):
         level = self.compress_service_loaded_data["level"]

@@ -1,19 +1,33 @@
+import enum
+import logging
 import os.path
 
 from config import app
 from logic.vc_client import VcClient
 from flask import request, jsonify
 
-from typing import Any
-
 
 @app.route("/service", methods=["POST"])
 def run_service():
+    class _ServiceResult(enum.Enum):
+        SUCCESS = 0
+        FAIL = 1
+
+    logging.basicConfig(level=logging.DEBUG, filemode='w', filename="routes.log")
+    logger = logging.getLogger()
+
     byteFileContent = bytes(request.json["content"])
     filename = request.json["name"]
     save_raw_data(byteFileContent, filename)
-    run_vc_client(request.json, filename)
-    return jsonify({"message": "success to compress"})
+    service_result = run_vc_client(request.json, filename)
+
+    if service_result == _ServiceResult.SUCCESS.value:
+        logger.info("Success to end service.")
+        return jsonify({"message": "success to end service."})
+
+    else:
+        logger.info("Failed to end service.")
+        return jsonify({"message": "failed to end service."})
 
 
 def save_raw_data(byteFileContent: bytes, filename: str):
@@ -27,10 +41,11 @@ def save_raw_data(byteFileContent: bytes, filename: str):
         f.write(byteFileContent)
 
 
-def run_vc_client(request_json: dict, payload_filename: str):
+def run_vc_client(request_json: dict, payload_filename: str) -> int:
     vc_client = VcClient("0.0.0.0", 5001, payload_filename)
     vc_client.upload()
-    vc_client.compress_service_start(request_json)
+    service_result = vc_client.compress_service_start(request_json)
+    return service_result
 
 
 if __name__ == '__main__':

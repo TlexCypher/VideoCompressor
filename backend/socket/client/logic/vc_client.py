@@ -36,9 +36,11 @@ class VcClient(TcpClient):
         self.__send_media_type()
         self.__send_payload()
 
-    def compress_service_start(self, request_json: dict):
+    def compress_service_start(self, request_json: dict) -> int:
         self.compress_service_parsed_json = self.__parse_compress_service_detail_json(request_json)
         self.sock.send(self.compress_service_parsed_json.encode())
+        service_result = int.from_bytes(self.sock.recv(self.stream_rate), "big")
+        return service_result
 
     def __parse_compress_service_detail_json(self, request_json: dict) -> Optional[str]:
         def __get_number_expression(_service: str) -> Optional[int]:
