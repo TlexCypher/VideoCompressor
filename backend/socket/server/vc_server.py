@@ -1,10 +1,10 @@
 import json
 import os.path
 import shutil
-import subprocess
 import sys
 
 from compress.compressor import Compressor
+from compress.serviceResult import ServiceResult
 from server import TcpServer
 
 
@@ -25,16 +25,16 @@ class VcServer(TcpServer):
         self.json_filename = "data.json"
         self.video_basename = "video"
 
-    def start(self) -> int:
+    def start(self) -> ServiceResult:
         try:
             while True:
                 self.__accept()
-                subprocess_result = self.__run_compress_service()
-                if subprocess_result.returncode == 0:
+                subprocess = self.__run_compress_service()
+                if subprocess.result.returncode == 0:
                     self.logger.info("Success to end service.")
                 else:
                     self.logger.error("Something wrong was happened. Failed to end service")
-                return subprocess_result.returncode
+                return subprocess
         except TimeoutError:
             super().logger.info("No data from client\nClosing connection.")
             sys.exit(1)
@@ -43,8 +43,6 @@ class VcServer(TcpServer):
     def clean():
         data_dir = os.path.join(os.path.dirname(__file__), "data")
         raw_dir = os.path.join(os.path.dirname(__file__), "raw")
-        print("data", data_dir)
-        print("raw", raw_dir)
 
         if os.path.exists(data_dir):
             os.chmod(data_dir, 0o777)
@@ -69,7 +67,7 @@ class VcServer(TcpServer):
         self.__accept_media_type(media_type_length)
         self.__accept_payload(payload_length)
 
-    def __run_compress_service(self) -> subprocess.CompletedProcess | subprocess.CompletedProcess[bytes]:
+    def __run_compress_service(self) -> ServiceResult:
         compress_service_json = self.connection.recv(self.stream_rate).decode()
         compressor = Compressor(compress_service_json, self.__get_server_data_path(self.payload_filename))
         return compressor.run()
@@ -105,9 +103,14 @@ class VcServer(TcpServer):
         return os.path.abspath(self.dpath) + "/" + filename
 
 
+def __make_srp_protocol_header(service_result: ServiceResult):
+    return service_result.result.returncode.to_bytes(1, "big") + len(service_result.output_filepath).to_bytes(16, "big")
+
+
 if __name__ == '__main__':
     VcServer.clean()
     vc_server = VcServer("0.0.0.0", 5001)
-    subprocess_result = vc_server.start()
-    print(subprocess_result)
-    vc_server.connection.send(int.to_bytes(subprocess_result, "big"))
+    service_result = vc_server.start()
+    vc_server.connection.send(__make_srp_protocol_header(service_result))
+    vc_server.connection.send(service_result.output_filepath.encode('utf-8'))
+

@@ -56,7 +56,7 @@ class TcpServer(object):
                 filename_size = int.from_bytes(self.header[self.filesize_length:], "big")
                 print("File_size: {}, Filename_size: {}".format(file_content_size, filename_size))
 
-                self.filename = self.connection.recv(int(filename_size)).decode('utf-8')
+                self.filename = self.connection.recv(filename_size).decode('utf-8')
                 print("Filename: {}".format((os.path.abspath(self.dpath) + "/" + self.filename)))
 
                 with open(os.path.abspath(self.dpath) + "/" + self.filename, "wb+") as f:

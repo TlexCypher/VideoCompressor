@@ -1,10 +1,10 @@
-import enum
 import json
 import os.path
 
 from typing import Optional, Any
 
 from compress.compressor import CompressService
+from compress.serviceResult import ServiceResult2
 from logic.client import TcpClient
 
 
@@ -18,13 +18,12 @@ class VcClient(TcpClient):
     def __init__(self, server_address: str, server_port: int, payload_filename: str) -> None:
         super().__init__(server_address, server_port)
         self.header_size = 64
+        self.srp_return_code_size = 1
+        self.srp_return_output_filepath_length = 16
+        self.srp_header_size = self.srp_return_code_size + self.srp_return_output_filepath_length
         self.payload_filename = payload_filename
         self.payload_dirpath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'server/raw/')
         self.payload_filepath = os.path.join(self.payload_dirpath, self.payload_filename)
-        print("###############################")
-        print("payload directory path,", self.payload_dirpath)
-        print("payload file path", self.payload_filepath)
-        print("payload file name", self.payload_filename)
 
     # Override TcpClient.upload()
     def upload(self) -> None:
@@ -36,11 +35,15 @@ class VcClient(TcpClient):
         self.__send_media_type()
         self.__send_payload()
 
-    def compress_service_start(self, request_json: dict) -> int:
+    def compress_service_start(self, request_json: dict) -> ServiceResult2:
         self.compress_service_parsed_json = self.__parse_compress_service_detail_json(request_json)
         self.sock.send(self.compress_service_parsed_json.encode())
-        service_result = int.from_bytes(self.sock.recv(self.stream_rate), "big")
-        return service_result
+        service_result_header = self.sock.recv(self.srp_header_size)
+        service_result_return_code = int.from_bytes(service_result_header[:self.srp_return_code_size], "big")
+        service_result_output_filepath_length = int.from_bytes(service_result_header[self.srp_return_code_size:], "big")
+        print("Service result output filepath length>>", service_result_output_filepath_length)
+        output_filepath = self.sock.recv(service_result_output_filepath_length).decode('utf-8')
+        return ServiceResult2(service_result_return_code, output_filepath)
 
     def __parse_compress_service_detail_json(self, request_json: dict) -> Optional[str]:
         def __get_number_expression(_service: str) -> Optional[int]:
@@ -61,7 +64,6 @@ class VcClient(TcpClient):
         json_data = None
         _service = request_json["service"]
         service = __get_number_expression(_service)
-        print("_SERVICE", _service)
         if service == CompressService.Compress.value:
             json_data = self.__parse_compress_json(request_json)
         elif service == CompressService.Change_Resolution.value:
