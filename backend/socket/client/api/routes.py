@@ -9,6 +9,11 @@ from compress.serviceResult import ServiceResult2
 from logic.vc_client import VcClient
 from flask import request, jsonify
 
+import shutil
+
+logging.basicConfig(level=logging.DEBUG, filemode='w', filename="routes.log")
+logger = logging.getLogger()
+
 
 @app.route("/service", methods=["POST"])
 def run_service():
@@ -16,13 +21,12 @@ def run_service():
         SUCCESS = 0
         FAIL = 1
 
-    logging.basicConfig(level=logging.DEBUG, filemode='w', filename="routes.log")
-    logger = logging.getLogger()
-
     byteFileContent = bytes(request.json["content"])
     filename = request.json["name"]
+    clean_up()
     save_raw_data(byteFileContent, filename)
     _service_result = run_vc_client(request.json, filename)
+
     if _service_result.return_code == _ServiceResultCode.SUCCESS.value:
         logger.info("Success to end service.")
         # write video content
@@ -86,6 +90,21 @@ def read_as_binary(output_filepath: str) -> bytes:
             file_size -= len(current_chunk)
 
         return data
+
+
+def clean_up():
+    raw_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "raw")
+    result_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "result")
+
+    if os.path.exists(raw_dir):
+        os.chmod(raw_dir, 0o777)
+        shutil.rmtree(raw_dir)
+        logger.info("Remove client/raw/")
+
+    if os.path.exists(result_dir):
+        os.chmod(result_dir, 0o777)
+        shutil.rmtree(result_dir)
+        logger.info("Remove client/result/")
 
 
 if __name__ == '__main__':

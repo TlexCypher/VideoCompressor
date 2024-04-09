@@ -69,7 +69,7 @@ const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => 
             {imageURL.length > 0 ? (
                 <div className="flex items-center justify-center">
                     <a href={imageURL} download
-                       className="block bg-blue-400 p-4 rounded-lg text-white font-bold w-1/5 mt-4 transition-transform hover:-translate-y-1 hover:translate-x-1 active:bg-blue-500">
+                       className="block bg-blue-400 p-4 rounded-lg text-white font-bold w-1/8 mt-4 transition-transform hover:-translate-y-1 hover:translate-x-1 active:bg-blue-500 text-center">
                         Start download (Click me!)
                     </a>
                 </div>

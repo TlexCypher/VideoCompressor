@@ -34,6 +34,7 @@ class VcServer(TcpServer):
                 else:
                     self.logger.error("Something wrong was happened. Failed to end service")
                 return subprocess
+
         except TimeoutError:
             super().logger.info("No data from client\nClosing connection.")
             sys.exit(1)
@@ -130,7 +131,5 @@ if __name__ == '__main__':
     vc_server = VcServer("0.0.0.0", 5001)
     service_result = vc_server.start()
     vc_server.connection.sendall(__make_srp_protocol_header(service_result))
-    print("#####################################")
     print(service_result.output_filepath)
     print(vc_server.connection.send(read_as_binary(service_result.output_filepath)))
-    print("#####################################")
