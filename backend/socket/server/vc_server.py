@@ -130,7 +130,8 @@ def read_as_binary(output_filepath: str) -> bytes:
 if __name__ == '__main__':
     VcServer.clean()
     vc_server = VcServer("0.0.0.0", 5001)
-    service_result = vc_server.start()
-    vc_server.connection.sendall(__make_srp_protocol_header(service_result))
-    vc_server.connection.send(read_as_binary(service_result.output_filepath))
-    vc_server.connection.send(service_result.mime_type.encode())
+    while True:
+        service_result = vc_server.start()
+        vc_server.connection.sendall(__make_srp_protocol_header(service_result))
+        vc_server.connection.send(read_as_binary(service_result.output_filepath))
+        vc_server.connection.send(service_result.mime_type.encode())

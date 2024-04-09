@@ -44,6 +44,7 @@ class TcpServer(object):
 
     def _establish_connection(self):
         self.connection, self.client_address = self.sock.accept()
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.logger.debug("Established a connection from {}".format(self.client_address))
         print("Success to establish connection with {}".format(self.client_address))
 
