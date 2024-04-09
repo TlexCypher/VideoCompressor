@@ -1,6 +1,5 @@
 import base64
 import enum
-import http
 import logging
 import os.path
 from http import HTTPStatus
@@ -24,32 +23,43 @@ def run_service():
     filename = request.json["name"]
     save_raw_data(byteFileContent, filename)
     _service_result = run_vc_client(request.json, filename)
-
     if _service_result.return_code == _ServiceResultCode.SUCCESS.value:
         logger.info("Success to end service.")
-        base64_encoded = base64.b64encode(read_as_binary(_service_result.output_filepath)).decode('utf-8')
-        print(base64_encoded)
+        # write video content
+        saved_filepath = save_service_result(_service_result, filename)
         return jsonify({
             "status": HTTPStatus.OK,
-            "content": base64_encoded,
+            "content": base64.b64encode(read_as_binary(saved_filepath)).decode('utf-8')
         })
 
     else:
         logger.info("Failed to end service.")
         return jsonify({
             "status": HTTPStatus.INTERNAL_SERVER_ERROR,
-            "content": None,
+            "content": None
         })
 
 
-def save_raw_data(byteFileContent: bytes, filename: str):
-    raw_data_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                                      "server/raw")
+def save_raw_data(byteFileContent: bytes, filename: str) -> None:
+    raw_data_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "raw")
     if not os.path.exists(raw_data_directory):
         os.makedirs(raw_data_directory)
     raw_video_filepath = os.path.join(raw_data_directory, filename)
-    with open(raw_video_filepath, "wb+") as f:
-        f.write(byteFileContent)
+    _save(byteFileContent, raw_video_filepath)
+
+
+def save_service_result(_service_result: ServiceResult2, filename: str) -> str:
+    service_result_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "result")
+    if not os.path.exists(service_result_directory):
+        os.makedirs(service_result_directory)
+    service_result_video_filepath = os.path.join(service_result_directory, "processed_" + filename)
+    _save(_service_result.file_content, service_result_video_filepath)
+    return service_result_video_filepath
+
+
+def _save(content: bytes, abs_filepath: str):
+    with open(abs_filepath, "wb+") as f:
+        f.write(content)
 
 
 def run_vc_client(request_json: dict, payload_filename: str) -> ServiceResult2:
@@ -71,8 +81,9 @@ def read_as_binary(output_filepath: str) -> bytes:
         file_size -= len(data)
 
         while file_size > 0:
-            data += f.read(file_size if file_size < stream_rate else stream_rate)
-            file_size -= len(data)
+            current_chunk = f.read(file_size if file_size < stream_rate else stream_rate)
+            data += current_chunk
+            file_size -= len(current_chunk)
 
         return data
 

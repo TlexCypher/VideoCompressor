@@ -19,10 +19,10 @@ class VcClient(TcpClient):
         super().__init__(server_address, server_port)
         self.header_size = 64
         self.srp_return_code_size = 1
-        self.srp_return_output_filepath_length = 16
-        self.srp_header_size = self.srp_return_code_size + self.srp_return_output_filepath_length
+        self.srp_file_content_size = 1024
+        self.srp_header_size = self.srp_return_code_size + self.srp_file_content_size
         self.payload_filename = payload_filename
-        self.payload_dirpath = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'server/raw/')
+        self.payload_dirpath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "raw")
         self.payload_filepath = os.path.join(self.payload_dirpath, self.payload_filename)
 
     # Override TcpClient.upload()
@@ -40,10 +40,21 @@ class VcClient(TcpClient):
         self.sock.send(self.compress_service_parsed_json.encode())
         service_result_header = self.sock.recv(self.srp_header_size)
         service_result_return_code = int.from_bytes(service_result_header[:self.srp_return_code_size], "big")
-        service_result_output_filepath_length = int.from_bytes(service_result_header[self.srp_return_code_size:], "big")
-        print("Service result output filepath length>>", service_result_output_filepath_length)
-        output_filepath = self.sock.recv(service_result_output_filepath_length).decode('utf-8')
-        return ServiceResult2(service_result_return_code, output_filepath)
+        service_result_content_size = int.from_bytes(service_result_header[self.srp_return_code_size:], "big")
+        print("Service result output file content length>>", service_result_content_size)
+        file_content = self.__get_file_content(service_result_content_size)
+        print(len(file_content))
+        return ServiceResult2(service_result_return_code, file_content)
+
+    def __get_file_content(self, file_size) -> bytes:
+        data_size = file_size
+        data = self.sock.recv(self.stream_rate)
+        data_size -= len(data)
+        while data_size > 0:
+            current_data = self.sock.recv(data_size if data_size < self.stream_rate else self.stream_rate)
+            data_size -= len(current_data)
+            data += current_data
+        return data
 
     def __parse_compress_service_detail_json(self, request_json: dict) -> Optional[str]:
         def __get_number_expression(_service: str) -> Optional[int]:
@@ -183,9 +194,3 @@ class VcClient(TcpClient):
         with open(self.payload_filepath, "r+") as payload_file:
             self.payload_filesize = super()._get_filesize(payload_file)
         return self.payload_filesize
-
-
-if __name__ == '__main__':
-    vc_client = VcClient("0.0.0.0", 5001)
-    vc_client.upload()
-    vc_client.compress_service_start()

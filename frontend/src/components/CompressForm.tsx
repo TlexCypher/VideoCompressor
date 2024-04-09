@@ -4,11 +4,11 @@ import axios, {HttpStatusCode} from 'axios'
 
 const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const [compressLevel, setCompressLevel] = useState<CompressLevel | null>(null)
+    const [imageURL, setImageURL] = useState<string>("")
     const handleCompressLevel = (e: ChangeEvent<HTMLInputElement>) => {
         setCompressLevel(e.target.value as CompressLevel)
     }
     const submitCompressForm = async() => {
-        console.log(new Uint8Array(fileBinaryContent as ArrayBuffer))
         const { data } = await axios.post<DataProcessedByService>("/service", {
             "name": fileName,
             "size": fileSize,
@@ -17,7 +17,13 @@ const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => 
             "service": "Compress"
         })
         if (data.status == HttpStatusCode.Ok) {
-            //UploadするためのPythonクラスとsocket通信を行う必要あり
+            const binaryContent = window.atob(data.content)
+            const bytes = new Uint8Array(binaryContent.length);
+            for (let i = 0; i < binaryContent.length; i++) {
+                bytes[i] = binaryContent.charCodeAt(i);
+            }
+            const imageURL = URL.createObjectURL(new Blob([bytes], {type: "video/mp4"}))
+            setImageURL(imageURL)
         } else {
             alert("Failed to end service successfully.")
         }
@@ -60,14 +66,18 @@ const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => 
                     <label htmlFor={"high"} className={"ml-1 font-bold"}>High</label>
                 </div>
             </div>
-            <div className={"flex justify-center items-center"}>
-                <button
-                    className={"font-bold bg-blue-400 text-white drop-shadow px-4 py-2 rounded-lg text-xl"}
-                    onClick={submitCompressForm}
-                >
-                    Go!
-                </button>
-            </div>
+            {imageURL.length > 0 ? (
+                <a href={imageURL} download> Start download</a>
+            ) : (
+                <div className={"flex justify-center items-center"}>
+                    <button
+                        className={"font-bold bg-blue-400 text-white drop-shadow px-4 py-2 rounded-lg text-xl"}
+                        onClick={submitCompressForm}
+                    >
+                        Go!
+                    </button>
+                </div>
+            )}
         </>
     );
 };

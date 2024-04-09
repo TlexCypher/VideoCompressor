@@ -9,6 +9,6 @@ class ServiceResult(object):
 
 
 class ServiceResult2(object):
-    def __init__(self, return_code: int, output_filepath: str) -> None:
+    def __init__(self, return_code: int, file_content: bytes) -> None:
         self.return_code = return_code
-        self.output_filepath = output_filepath
+        self.file_content = file_content

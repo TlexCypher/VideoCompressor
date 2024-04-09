@@ -23,7 +23,6 @@ class VcServer(TcpServer):
         self.header_length = self.json_length + self.media_type_length + self.payload_length
 
         self.json_filename = "data.json"
-        self.video_basename = "video"
 
     def start(self) -> ServiceResult:
         try:
@@ -104,13 +103,34 @@ class VcServer(TcpServer):
 
 
 def __make_srp_protocol_header(service_result: ServiceResult):
-    return service_result.result.returncode.to_bytes(1, "big") + len(service_result.output_filepath).to_bytes(16, "big")
+    data = read_as_binary(service_result.output_filepath)
+    return service_result.result.returncode.to_bytes(1, "big") + len(data).to_bytes(1024, "big")
+
+
+def read_as_binary(output_filepath: str) -> bytes:
+    stream_rate = 1024
+    with open(output_filepath, "rb+") as f:
+        f.seek(0, 0)
+        f.seek(0, os.SEEK_END)
+        file_size = f.tell()
+        f.seek(0, 0)
+
+        data = f.read(stream_rate)
+        file_size -= len(data)
+
+        while file_size > 0:
+            current_data = f.read(file_size if file_size < stream_rate else stream_rate)
+            file_size -= len(current_data)
+            data += current_data
+        return data
 
 
 if __name__ == '__main__':
     VcServer.clean()
     vc_server = VcServer("0.0.0.0", 5001)
     service_result = vc_server.start()
-    vc_server.connection.send(__make_srp_protocol_header(service_result))
-    vc_server.connection.send(service_result.output_filepath.encode('utf-8'))
-
+    vc_server.connection.sendall(__make_srp_protocol_header(service_result))
+    print("#####################################")
+    print(service_result.output_filepath)
+    print(vc_server.connection.send(read_as_binary(service_result.output_filepath)))
+    print("#####################################")

@@ -17,6 +17,6 @@ type ServiceProps = {
 }
 
 type DataProcessedByService = {
-    content: string,
     status: number,
+    content: string
 }
