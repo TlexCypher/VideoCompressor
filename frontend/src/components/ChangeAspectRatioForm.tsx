@@ -61,7 +61,7 @@ const ChangeAspectRatioForm = ({fileName, fileSize, fileBinaryContent}: ServiceP
                 ) : (
                 <div className={"flex justify-center items-center mt-4"}>
                     <button
-                        className={"font-bold bg-blue-400 text-white drop-shadow px-4 py-2 rounded-lg text-xl"}
+                        className={"font-bold bg-blue-400 text-white drop-shadow px-4 py-2 rounded-lg text-xl transition-transform hover:-translate-y-1 hover:translate-x-1 active:bg-blue-500"}
                         onClick={submitChangeAspectRatioForm}
                     >
                         Go!
