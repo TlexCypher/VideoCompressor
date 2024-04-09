@@ -20,7 +20,8 @@ class VcClient(TcpClient):
         self.header_size = 64
         self.srp_return_code_size = 1
         self.srp_file_content_size = 1024
-        self.srp_header_size = self.srp_return_code_size + self.srp_file_content_size
+        self.srp_mime_type_size = 15
+        self.srp_header_size = self.srp_return_code_size + self.srp_file_content_size + self.srp_mime_type_size
         self.payload_filename = payload_filename
         self.payload_dirpath = os.path.join(os.path.dirname(os.path.dirname(__file__)), "raw")
         self.payload_filepath = os.path.join(self.payload_dirpath, self.payload_filename)
@@ -40,11 +41,12 @@ class VcClient(TcpClient):
         self.sock.send(self.compress_service_parsed_json.encode())
         service_result_header = self.sock.recv(self.srp_header_size)
         service_result_return_code = int.from_bytes(service_result_header[:self.srp_return_code_size], "big")
-        service_result_content_size = int.from_bytes(service_result_header[self.srp_return_code_size:], "big")
-        print("Service result output file content length>>", service_result_content_size)
+        service_result_content_size = int.from_bytes(service_result_header[self.srp_return_code_size:self.srp_return_code_size + self.srp_file_content_size], "big")
+        service_result_mime_type_size = int.from_bytes(service_result_header[self.srp_return_code_size + self.srp_file_content_size:], "big")
         file_content = self.__get_file_content(service_result_content_size)
-        print(len(file_content))
-        return ServiceResult2(service_result_return_code, file_content)
+        mime_type = self.__get_mime_type(service_result_mime_type_size)
+        print("MIME_type >>", mime_type)
+        return ServiceResult2(service_result_return_code, file_content, mime_type)
 
     def __get_file_content(self, file_size) -> bytes:
         data_size = file_size
@@ -55,6 +57,9 @@ class VcClient(TcpClient):
             data_size -= len(current_data)
             data += current_data
         return data
+
+    def __get_mime_type(self, mime_type_size: int) -> str:
+        return self.sock.recv(self.stream_rate).decode('utf-8')
 
     def __parse_compress_service_detail_json(self, request_json: dict) -> Optional[str]:
         def __get_number_expression(_service: str) -> Optional[int]:

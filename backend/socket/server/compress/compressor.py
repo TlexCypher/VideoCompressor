@@ -19,6 +19,7 @@ class Compressor(object):
         self.payload_filename = payload_filename
         self.base_command = "ffmpeg -i " + self.payload_filename
         self.output_filename = None
+        self.output_mime_type = "video/mp4"
         self.__load_compress_service_json()
 
     def __load_compress_service_json(self):
@@ -33,7 +34,8 @@ class Compressor(object):
             self.command = self.command.split(" ")
             result = subprocess.run(self.command)
             output_filepath = os.path.join(os.path.dirname(os.path.dirname(__file__)), self.output_filename)
-            return ServiceResult(result, output_filepath)
+            print("MIME MIME>>", self.output_mime_type)
+            return ServiceResult(result, output_filepath, self.output_mime_type)
 
         if self.service == CompressService.Compress:
             self.logger.debug("Do compress service start: numbers is 1")
@@ -49,10 +51,12 @@ class Compressor(object):
 
         elif self.service == CompressService.Convert_Into_Audio:
             self.logger.debug("Do convert into audio service start: numbers is 4")
+            self.output_mime_type = "audio/mpeg"
             self.__convert_into_audio()
 
         elif self.service == CompressService.Create_Gif:
             self.logger.debug("Do create gif service start: numbers is 5")
+            self.output_mime_type = "image/gif"
             self.__create_gif()
 
         else:

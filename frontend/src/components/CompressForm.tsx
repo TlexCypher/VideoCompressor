@@ -1,6 +1,7 @@
 import {ChangeEvent, useState} from "react";
 import {CompressLevel, ServiceProps, DataProcessedByService} from "../../typings";
 import axios, {HttpStatusCode} from 'axios'
+import getDownloadableURL from "../lib/getDownloadableURL.ts";
 
 const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const [compressLevel, setCompressLevel] = useState<CompressLevel | null>(null)
@@ -16,13 +17,9 @@ const CompressForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => 
             "level": compressLevel,
             "service": "Compress"
         })
-        if (data.status == HttpStatusCode.Ok) {
+        if (data.status === HttpStatusCode.Ok) {
             const binaryContent = window.atob(data.content)
-            const bytes = new Uint8Array(binaryContent.length);
-            for (let i = 0; i < binaryContent.length; i++) {
-                bytes[i] = binaryContent.charCodeAt(i);
-            }
-            const imageURL = URL.createObjectURL(new Blob([bytes], {type: "video/mp4"}))
+            const imageURL = getDownloadableURL(binaryContent, data.mime)
             setImageURL(imageURL)
         } else {
             alert("Failed to end service successfully.")

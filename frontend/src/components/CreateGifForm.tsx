@@ -1,12 +1,14 @@
 import {ChangeEvent, useState} from "react";
-import {ServiceProps} from "../../typings";
-import axios from "axios";
+import {DataProcessedByService, ServiceProps} from "../../typings";
+import axios, {HttpStatusCode} from "axios";
+import getDownloadableURL from "../lib/getDownloadableURL.ts";
 
 const CreateGifForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) => {
     const [startTime, setStartTime] = useState<string>("")
     const [endPosition, setEndPosition] = useState<string>("")
     const [flameRate, setFlameRate] = useState<string>("")
     const [resize, setResize] = useState<string>("")
+    const [imageURL, setImageURL] = useState<string>("")
 
     const handleStartTime = (e: ChangeEvent<HTMLInputElement>) => {
         setStartTime(e.target.value)
@@ -25,7 +27,7 @@ const CreateGifForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) =>
     }
 
     const submitCreateGifForm = async() => {
-        await axios.post("/service", {
+        const { data } = await axios.post<DataProcessedByService>("/service", {
             "name": fileName,
             "size": fileSize,
             "content": Array.from(new Uint8Array(fileBinaryContent)),
@@ -35,6 +37,13 @@ const CreateGifForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) =>
             "flame_rate": flameRate,
             "resize": resize,
         })
+        if (data.status === HttpStatusCode.Ok) {
+            const binaryContent = window.atob(data.content)
+            const imageURL = getDownloadableURL(binaryContent, data.mime)
+            setImageURL(imageURL)
+        } else {
+            alert("Failed to end service successfully.")
+        }
     }
 
     return (
@@ -77,14 +86,23 @@ const CreateGifForm = ({fileName, fileSize, fileBinaryContent}: ServiceProps) =>
                     />
                 </div>
             </div>
-            <div className={"flex justify-center items-center mt-4"}>
-                <button
-                    className={"font-bold bg-blue-400 text-white drop-shadow px-4 py-2 rounded-lg text-xl"}
-                    onClick={submitCreateGifForm}
-                >
-                    Go!
-                </button>
-            </div>
+            {imageURL.length > 0 ? (
+                <div className="flex items-center justify-center">
+                    <a href={imageURL} download
+                       className="block bg-blue-400 p-4 rounded-lg text-white font-bold w-1/8 mt-4 transition-transform hover:-translate-y-1 hover:translate-x-1 active:bg-blue-500 text-center">
+                        Start download (Click me!)
+                    </a>
+                </div>
+                ) : (
+                <div className={"flex justify-center items-center mt-4"}>
+                    <button
+                        className={"font-bold bg-blue-400 text-white drop-shadow px-4 py-2 rounded-lg text-xl"}
+                        onClick={submitCreateGifForm}
+                    >
+                        Go!
+                    </button>
+                </div>
+            )}
         </>
     );
 };

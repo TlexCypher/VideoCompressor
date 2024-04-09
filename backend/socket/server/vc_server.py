@@ -105,7 +105,8 @@ class VcServer(TcpServer):
 
 def __make_srp_protocol_header(service_result: ServiceResult):
     data = read_as_binary(service_result.output_filepath)
-    return service_result.result.returncode.to_bytes(1, "big") + len(data).to_bytes(1024, "big")
+    return service_result.result.returncode.to_bytes(1, "big") + len(data).to_bytes(1024, "big") \
+        + len(service_result.mime_type).to_bytes(15, "big")
 
 
 def read_as_binary(output_filepath: str) -> bytes:
@@ -131,5 +132,5 @@ if __name__ == '__main__':
     vc_server = VcServer("0.0.0.0", 5001)
     service_result = vc_server.start()
     vc_server.connection.sendall(__make_srp_protocol_header(service_result))
-    print(service_result.output_filepath)
-    print(vc_server.connection.send(read_as_binary(service_result.output_filepath)))
+    vc_server.connection.send(read_as_binary(service_result.output_filepath))
+    vc_server.connection.send(service_result.mime_type.encode())

@@ -29,18 +29,19 @@ def run_service():
 
     if _service_result.return_code == _ServiceResultCode.SUCCESS.value:
         logger.info("Success to end service.")
-        # write video content
         saved_filepath = save_service_result(_service_result, filename)
         return jsonify({
             "status": HTTPStatus.OK,
-            "content": base64.b64encode(read_as_binary(saved_filepath)).decode('utf-8')
+            "content": base64.b64encode(read_as_binary(saved_filepath)).decode('utf-8'),
+            "mime": _service_result.mime_type
         })
 
     else:
         logger.info("Failed to end service.")
         return jsonify({
             "status": HTTPStatus.INTERNAL_SERVER_ERROR,
-            "content": None
+            "content": None,
+            "mime": None,
         })
 
 
