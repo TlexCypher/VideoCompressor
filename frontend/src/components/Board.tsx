@@ -34,7 +34,7 @@ const Board = () => {
         <>
             <div>
                 <div>
-                    <p className={"text-center mt-8 drop-shadow font-bold text-2xl"}>
+                    <p className={"text-center mt-8 drop-shadow font-bold text-3xl"}>
                         Select video!
                     </p>
                     <div className={"flex mt-4 bg-white p-2 rounded-lg w-1/5 mx-auto text-center"}>
@@ -43,10 +43,11 @@ const Board = () => {
                             onChange={handleSelectedVideo}
                         />
                     </div>
-                    <form>
-                        <div className={"flex items-center justify-center space-x-4 mt-4"}>
-                            <div>
+                    <form className={"flex justify-center"}>
+                        <div>
+                            <div className={"mt-4 flex items-center"}>
                                 <input
+                                    className={"h-5 w-5"}
                                     type={"radio"}
                                     id={"Compress"}
                                     name={"service"}
@@ -54,10 +55,11 @@ const Board = () => {
                                     checked={"Compress" === selectedService}
                                     onChange={handleSelectedService}
                                 />
-                                <label htmlFor={"Compress"} className={"ml-1 font-bold"}>Compress with selected level</label>
+                                <label htmlFor={"Compress"} className={"ml-3 font-bold text-3xl drop-shadow"}>Compress with selected level</label>
                             </div>
-                            <div>
+                            <div className={"mt-4 flex items-center"}>
                                 <input
+                                    className={"h-5 w-5"}
                                     type={"radio"}
                                     id={"Change resolution"}
                                     name={"service"}
@@ -65,10 +67,11 @@ const Board = () => {
                                     checked={"Change resolution" === selectedService}
                                     onChange={handleSelectedService}
                                 />
-                                <label htmlFor={"Change resolution"} className={"ml-1 font-bold"}>Change resolution</label>
+                                <label htmlFor={"Change resolution"} className={"ml-3 font-bold text-3xl drop-shadow"}>Change resolution</label>
                             </div>
-                            <div>
+                            <div className={"mt-4 flex items-center"}>
                                 <input
+                                    className={"h-5 w-5"}
                                     type={"radio"}
                                     id={"Change aspect ratio"}
                                     name={"service"}
@@ -76,10 +79,11 @@ const Board = () => {
                                     checked={"Change aspect ratio" === selectedService}
                                     onChange={handleSelectedService}
                                 />
-                                <label htmlFor={"Change aspect ratio"} className={"ml-1 font-bold"}>Change aspect ratio</label>
+                                <label htmlFor={"Change aspect ratio"} className={"ml-3 font-bold text-3xl drop-shadow"}>Change aspect ratio</label>
                             </div>
-                            <div>
+                            <div className={"mt-4 flex items-center"}>
                                 <input
+                                    className={"h-5 w-5"}
                                     type={"radio"}
                                     id={"Convert into audio"}
                                     name={"service"}
@@ -87,10 +91,11 @@ const Board = () => {
                                     checked={"Convert into audio" === selectedService}
                                     onChange={handleSelectedService}
                                 />
-                                <label htmlFor={"Convert into audio"} className={"ml-1 font-bold"}>Convert into audio</label>
+                                <label htmlFor={"Convert into audio"} className={"ml-3 font-bold text-3xl drop-shadow"}>Convert into audio</label>
                             </div>
-                            <div>
+                            <div className={"mt-4 flex items-center"}>
                                 <input
+                                    className={"h-5 w-5"}
                                     type={"radio"}
                                     id={"Create gif"}
                                     name={"service"}
@@ -98,7 +103,7 @@ const Board = () => {
                                     checked={"Create gif" === selectedService}
                                     onChange={handleSelectedService}
                                 />
-                                <label htmlFor={"Create gif"} className={"ml-1 font-bold"}>Create gif</label>
+                                <label htmlFor={"Create gif"} className={"ml-3 font-bold text-3xl drop-shadow"}>Create gif</label>
                             </div>
                         </div>
                     </form>
