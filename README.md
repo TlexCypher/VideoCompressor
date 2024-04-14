@@ -78,6 +78,11 @@ ffmpeg version 6.1.1 Copyright (c) 2000-2023 the FFmpeg developers
 
 ## System Design
 
+
+<img width="963" alt="SystemDesignCompman" src="https://github.com/TlexCypher/VideoCompressor/assets/144787772/2ec857b7-360c-4641-af19-45edc4809944">
+
+
+
 ## Functionalities wanna to add in the future
 
 - サービスがどのくらい終了しているかがわかるプログレスバーを表示したい
